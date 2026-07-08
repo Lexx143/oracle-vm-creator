@@ -104,8 +104,9 @@ function render() {
   }
   const active = hunt.status === "running" || hunt.status === "provisioning";
   $("#btn-hunt-stop").style.display = active ? "" : "none";
-  $("#btn-hunt-restart").style.display =
-    !active && (hunt.status === "stopped" || hunt.status === "error") ? "" : "none";
+  const paused = !active && (hunt.status === "stopped" || hunt.status === "error");
+  $("#btn-hunt-restart").style.display = paused ? "" : "none";
+  $("#btn-edit-params").style.display = paused ? "" : "none";
 
   // кнопка «Начать заново» — на промежуточных шагах (на шаге 6 есть свой wipe)
   $("#reset-row").style.display = step >= 2 && step <= 5 ? "" : "none";
@@ -261,6 +262,23 @@ $("#btn-reset").addEventListener("click", async () => {
   await api("/api/wipe", { method: "POST" });
   await refresh();
   window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+$("#btn-edit-params").addEventListener("click", async () => {
+  // запомнить прежние параметры и подставить их в форму шага 4
+  const prev = (session && session.hunt) || {};
+  await api("/api/back_to_params", { method: "POST" });
+  if (prev.display_name) $("#vm-name").value = prev.display_name;
+  if (prev.ocpus) {
+    $("#vm-ocpus").value = prev.ocpus;
+    $("#vm-ocpus").dispatchEvent(new Event("input"));
+  }
+  if (prev.boot_gb) {
+    $("#vm-disk").value = prev.boot_gb;
+    $("#vm-disk").dispatchEvent(new Event("input"));
+  }
+  await refresh();
+  $("#step4").scrollIntoView({ behavior: "smooth" });
 });
 
 $("#btn-download-key").addEventListener("click", () => {

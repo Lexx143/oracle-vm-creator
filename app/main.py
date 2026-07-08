@@ -136,6 +136,23 @@ def start_hunt(body: HuntParams, sess: state.Session = Depends(current_session))
     return {"ok": True}
 
 
+@app.post("/api/back_to_params")
+def back_to_params(sess: state.Session = Depends(current_session)):
+    """Вернуться с шага 5 на шаг 4, сохранив ключи и настройки окружения."""
+    st = sess.get()
+    if st["hunt"]["status"] in ("running", "provisioning"):
+        raise HTTPException(status_code=409, detail="Сначала остановите охоту.")
+    if st["hunt"]["status"] == "success":
+        raise HTTPException(status_code=409, detail="Сервер уже создан.")
+
+    def _upd(s):
+        s["hunt"].update(status="idle", attempts=0, error=None,
+                         last_message=None, instance_id=None, started_at=None)
+        s["step"] = 4
+    sess.mutate(_upd)
+    return {"ok": True}
+
+
 @app.post("/api/stop_hunt")
 def stop_hunt(sess: state.Session = Depends(current_session)):
     oci_service.stop_hunt(sess)
