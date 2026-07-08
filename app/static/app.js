@@ -107,6 +107,9 @@ function render() {
   $("#btn-hunt-restart").style.display =
     !active && (hunt.status === "stopped" || hunt.status === "error") ? "" : "none";
 
+  // кнопка «Начать заново» — на промежуточных шагах (на шаге 6 есть свой wipe)
+  $("#reset-row").style.display = step >= 2 && step <= 5 ? "" : "none";
+
   // шаг 6: успех
   if (hunt.status === "success") {
     $("#vm-ip").textContent = hunt.public_ip || "смотрите в консоли Oracle";
@@ -240,6 +243,18 @@ $("#btn-hunt-restart").addEventListener("click", async () => {
     },
   });
   await refresh();
+});
+
+$("#btn-reset").addEventListener("click", async () => {
+  const hunt = session && session.hunt;
+  const active = hunt && ["running", "provisioning"].includes(hunt.status);
+  const msg = active
+    ? "Охота будет остановлена, все данные (ключи, настройки) удалены. Начать заново с шага 1?"
+    : "Все данные (ключи, настройки) будут удалены. Начать заново с шага 1?";
+  if (!confirm(msg)) return;
+  await api("/api/wipe", { method: "POST" });
+  await refresh();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 $("#btn-download-key").addEventListener("click", () => {
