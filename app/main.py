@@ -121,6 +121,7 @@ class HuntParams(BaseModel):
     display_name: str = Field(default="free-arm-vm", min_length=1, max_length=64)
     ocpus: int = Field(default=4, ge=1, le=4)
     memory_gb: int = Field(default=24, ge=6, le=24)
+    boot_gb: int = Field(default=50, ge=50, le=200)
 
 
 @app.post("/api/start_hunt")
@@ -130,7 +131,8 @@ def start_hunt(body: HuntParams, sess: state.Session = Depends(current_session))
         raise HTTPException(status_code=409, detail="Сначала выполните автонастройку (шаг 3).")
     if st["hunt"]["status"] in ("running", "provisioning"):
         return {"ok": True, "already": True}
-    oci_service.start_hunt(sess, body.display_name.strip(), body.ocpus, body.memory_gb)
+    oci_service.start_hunt(sess, body.display_name.strip(), body.ocpus,
+                           body.memory_gb, body.boot_gb)
     return {"ok": True}
 
 

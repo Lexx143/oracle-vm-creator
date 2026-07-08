@@ -90,6 +90,10 @@
         <input type="range" id="vm-ocpus" min="1" max="4" value="4" style="width:100%">
       </label>
       <p class="hint">Память считается автоматически: 6 ГБ на каждое ядро.</p>
+      <label>Диск: <span id="disk-label">50</span> ГБ
+        <input type="range" id="vm-disk" min="50" max="200" step="10" value="50" style="width:100%">
+      </label>
+      <p class="hint">Бесплатный лимит — 200 ГБ на весь аккаунт. Если забрать всё под этот сервер, на второй бесплатный сервер места не останется.</p>
       <button id="btn-step4">🎯 Начать охоту за сервером</button>
     </div>
   </div>

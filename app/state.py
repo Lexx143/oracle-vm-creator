@@ -34,6 +34,7 @@ DEFAULT_STATE = {
         "display_name": None,
         "ocpus": None,
         "memory_gb": None,
+        "boot_gb": None,
         "instance_id": None,
         "public_ip": None,
     },

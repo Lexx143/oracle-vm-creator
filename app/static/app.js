@@ -206,6 +206,10 @@ $("#vm-ocpus").addEventListener("input", () => {
   $("#mem-label").textContent = ocpus * 6;
 });
 
+$("#vm-disk").addEventListener("input", () => {
+  $("#disk-label").textContent = $("#vm-disk").value;
+});
+
 $("#btn-step4").addEventListener("click", async () => {
   const ocpus = Number($("#vm-ocpus").value);
   $("#btn-step4").disabled = true;
@@ -216,6 +220,7 @@ $("#btn-step4").addEventListener("click", async () => {
         display_name: $("#vm-name").value.trim() || "free-arm-vm",
         ocpus,
         memory_gb: ocpus * 6,
+        boot_gb: Number($("#vm-disk").value),
       },
     });
     await refresh();
@@ -240,6 +245,7 @@ $("#btn-hunt-restart").addEventListener("click", async () => {
       display_name: hunt.display_name || "free-arm-vm",
       ocpus: hunt.ocpus || 4,
       memory_gb: hunt.memory_gb || 24,
+      boot_gb: hunt.boot_gb || 50,
     },
   });
   await refresh();

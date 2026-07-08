@@ -252,6 +252,7 @@ def _ensure_ssh_keypair(sess):
         serialization.Encoding.OpenSSH,
         serialization.PublicFormat.OpenSSH,
     ).decode() + " oracle-free-vm"
+    sess.dir.mkdir(parents=True, exist_ok=True)
     sess.ssh_key_file.write_bytes(private_bytes)
     os.chmod(sess.ssh_key_file, 0o600)
     sess.ssh_pub_file.write_text(public_str + "\n")
@@ -325,7 +326,7 @@ def _hunt_msg(sess, text):
     log.info("hunt[%s]: %s", sess.key, text)
 
 
-def start_hunt(sess, display_name, ocpus, memory_gb):
+def start_hunt(sess, display_name, ocpus, memory_gb, boot_gb):
     st = sess.get()
     if not st["network"]:
         raise RuntimeError("Сначала выполните автонастройку (шаг 3).")
@@ -338,7 +339,7 @@ def start_hunt(sess, display_name, ocpus, memory_gb):
         s["hunt"].update(
             status="running", attempts=0, error=None, instance_id=None, public_ip=None,
             started_at=time.time(), display_name=display_name,
-            ocpus=ocpus, memory_gb=memory_gb,
+            ocpus=ocpus, memory_gb=memory_gb, boot_gb=boot_gb,
             last_message="Запускаемся...",
         )
         s["step"] = max(s["step"], 5)
@@ -398,6 +399,8 @@ def _hunt_loop(sess, stop):
             display_name=hunt["display_name"],
             source_details=oci.core.models.InstanceSourceViaImageDetails(
                 image_id=net["image_id"],
+                # None у сессий, запущенных до появления настройки — диск по умолчанию (~47 ГБ)
+                boot_volume_size_in_gbs=hunt.get("boot_gb"),
             ),
             create_vnic_details=oci.core.models.CreateVnicDetails(
                 subnet_id=net["subnet_id"], assign_public_ip=True,
