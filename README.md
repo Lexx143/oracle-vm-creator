@@ -3,8 +3,11 @@
 [Русский](README.ru.md) · **English**
 
 A web wizard that walks a non-technical person through getting a free ARM VM
-(Always Free, up to 4 OCPU / 24 GB) in Oracle Cloud: sign-up → API key → automatic
-network setup → hunting for free capacity → downloading the SSH key.
+in Oracle Cloud: sign-up → API key → automatic network setup → hunting for free
+capacity → downloading the SSH key.
+
+Always Free limits: **2 OCPU / 12 GB** for free-tier accounts (quietly halved by
+Oracle on June 15, 2026; PAYG accounts reportedly still get 4 OCPU / 24 GB free).
 
 Supports **multiple users in parallel**: access tokens are listed comma-separated
 in `ACCESS_TOKENS` (`.env`); each token gets an isolated session

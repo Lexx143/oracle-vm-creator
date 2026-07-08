@@ -244,8 +244,8 @@ $("#btn-hunt-restart").addEventListener("click", async () => {
     method: "POST",
     body: {
       display_name: hunt.display_name || "free-arm-vm",
-      ocpus: hunt.ocpus || 4,
-      memory_gb: hunt.memory_gb || 24,
+      ocpus: hunt.ocpus || 2,
+      memory_gb: hunt.memory_gb || 12,
       boot_gb: hunt.boot_gb || 50,
     },
   });

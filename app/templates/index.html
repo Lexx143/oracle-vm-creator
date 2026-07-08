@@ -11,7 +11,7 @@
 <div class="wrap">
   <header>
     <h1>🖥️ Бесплатный ARM-сервер в Oracle Cloud</h1>
-    <p>Пошаговый мастер: до 4 ядер и 24 ГБ памяти — навсегда бесплатно</p>
+    <p>Пошаговый мастер: 2 ядра и 12 ГБ памяти — навсегда бесплатно</p>
   </header>
 
   <!-- ШАГ 1 -->
@@ -82,12 +82,12 @@
       <div class="step-title">Параметры сервера</div>
     </div>
     <div class="step-body">
-      <p>Рекомендуем максимум бесплатного лимита — менять что-то нужно, только если знаете зачем.</p>
+      <p>Бесплатный лимит (с июня 2026): <b>2 OCPU / 12 ГБ</b>. Больше — только если ваш аккаунт платный (Pay&nbsp;As&nbsp;You&nbsp;Go), там бесплатно до 4/24.</p>
       <label>Имя сервера
         <input type="text" id="vm-name" value="free-arm-vm" maxlength="64">
       </label>
-      <label>Ядра (OCPU): <span id="ocpus-label">4</span> &nbsp;/&nbsp; Память: <span id="mem-label">24</span> ГБ
-        <input type="range" id="vm-ocpus" min="1" max="4" value="4" style="width:100%">
+      <label>Ядра (OCPU): <span id="ocpus-label">2</span> &nbsp;/&nbsp; Память: <span id="mem-label">12</span> ГБ
+        <input type="range" id="vm-ocpus" min="1" max="4" value="2" style="width:100%">
       </label>
       <p class="hint">Память считается автоматически: 6 ГБ на каждое ядро.</p>
       <label>Диск: <span id="disk-label">50</span> ГБ
@@ -116,6 +116,12 @@
         <div class="hunt-log" id="hunt-log">Ожидание...</div>
       </div>
       <div class="error" id="hunt-error"></div>
+      <p><b>Охота идёт долго?</b> Это нормально — иногда дни. Как повысить шансы:</p>
+      <ul>
+        <li><b>Попросите меньше.</b> Сервер 1 OCPU / 6 ГБ влезает в свободные «дырки» на хостах заметно чаще, чем 2/12. Нажмите «Остановить» → «← Изменить параметры». Размер потом можно увеличить без пересоздания: в консоли Oracle у сервера More actions → Edit → изменить shape (перезагрузка; в пределах вашего бесплатного лимита и при наличии мощностей).</li>
+        <li><b>Апгрейд до Pay As You Go.</b> Платящие аккаунты получают приоритет — сервер обычно создаётся с первых попыток, а Always Free-ресурсы остаются бесплатными (и лимит у PAYG выше: 4 OCPU / 24 ГБ). Понадобится карта; следите, чтобы не выйти за бесплатные лимиты.</li>
+        <li><b>Просто ждать.</b> Мощности освобождаются волнами — бот проверяет каждую минуту круглосуточно, страницу держать открытой не нужно.</li>
+      </ul>
       <button id="btn-hunt-stop" class="danger">Остановить</button>
       <button id="btn-hunt-restart" style="display:none">Возобновить охоту</button>
       <button id="btn-edit-params" class="secondary" style="display:none">← Изменить параметры</button>
