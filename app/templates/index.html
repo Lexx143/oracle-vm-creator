@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Бесплатный сервер в Oracle Cloud</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🖥️ Бесплатный ARM-сервер в Oracle Cloud</h1>
+    <p>Пошаговый мастер: до 4 ядер и 24 ГБ памяти — навсегда бесплатно</p>
+  </header>
+
+  <!-- ШАГ 1 -->
+  <div class="step" id="step1">
+    <div class="step-head">
+      <div class="step-num">1</div>
+      <div class="step-title">Регистрация в Oracle Cloud</div>
+    </div>
+    <div class="step-body">
+      <ol>
+        <li>Откройте <a href="https://www.oracle.com/cloud/free/" target="_blank" rel="noopener">oracle.com/cloud/free</a> и нажмите <b>Start for free</b>.</li>
+        <li>Заполните анкету. Понадобится <b>банковская карта</b> — с неё спишут и сразу вернут ~1$ для проверки. Платить ничего не нужно: мы будем использовать только вечно-бесплатные ресурсы (Always Free).</li>
+        <li><b>Внимательно выберите Home Region</b> — его потом нельзя поменять, а бесплатный сервер создаётся только в нём. Бесплатные мощности — дефицит: чем менее популярен регион, тем быстрее вы поймаете сервер.
+          <ul>
+            <li>✅ <b>Рекомендуем:</b> Saudi Arabia West (Jeddah) или Saudi Arabia Central (Riyadh) — близко, и серверы там ловятся заметно быстрее. Из Европы неплохи небольшие регионы: Marseille, Milan, Stockholm, Zurich.</li>
+            <li>⛔ <b>Не советуем:</b> Amsterdam, Frankfurt, London, US East/West, Singapore, Tokyo — там свободные мощности приходится ждать дольше всего (иногда неделями).</li>
+          </ul>
+        </li>
+        <li>Дождитесь письма о создании аккаунта и войдите в консоль <a href="https://cloud.oracle.com" target="_blank" rel="noopener">cloud.oracle.com</a>.</li>
+      </ol>
+      <button id="btn-step1">У меня есть аккаунт, дальше →</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 2 -->
+  <div class="step" id="step2">
+    <div class="step-head">
+      <div class="step-num">2</div>
+      <div class="step-title">Подключение к вашему аккаунту (API-ключ)</div>
+    </div>
+    <div class="step-body">
+      <p>Мы сгенерировали для вас ключ. Скопируйте его и добавьте в консоль Oracle:</p>
+      <div class="codebox">
+        <button class="copy-btn" data-copy="#public-key">Копировать</button>
+        <pre id="public-key">...</pre>
+      </div>
+      <ol>
+        <li>В консоли Oracle нажмите на <b>иконку профиля</b> (кружок справа сверху) и в меню выберите <b>User settings</b> (в старых версиях консоли — <b>My profile</b>).</li>
+        <li>На странице профиля перейдите на вкладку <b>Tokens and keys</b>.</li>
+        <li>В разделе <b>API keys</b> нажмите <b>Add API key</b> → отметьте <b>Paste a public key</b> → вставьте ключ выше → кнопка <b>Add</b>.</li>
+        <li>Oracle покажет окно <b>Configuration file preview</b>. Скопируйте оттуда весь текст (начинается с <code>[DEFAULT]</code>) и вставьте сюда:</li>
+      </ol>
+      <textarea id="config-snippet" placeholder="[DEFAULT]&#10;user=ocid1.user.oc1..&#10;fingerprint=...&#10;tenancy=ocid1.tenancy.oc1..&#10;region=..."></textarea>
+      <div class="error" id="config-error"></div>
+      <button id="btn-step2">Проверить подключение</button>
+      <div id="config-ok"></div>
+    </div>
+  </div>
+
+  <!-- ШАГ 3 -->
+  <div class="step" id="step3">
+    <div class="step-head">
+      <div class="step-num">3</div>
+      <div class="step-title">Автонастройка окружения</div>
+    </div>
+    <div class="step-body">
+      <p>Сейчас всё сделаем за вас: создадим сеть, найдём свежий образ Ubuntu и подготовим SSH-ключ для будущего сервера.</p>
+      <ul class="subtasks" id="setup-steps"></ul>
+      <div class="error" id="setup-error"></div>
+      <button id="btn-step3">Подготовить окружение</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 4 -->
+  <div class="step" id="step4">
+    <div class="step-head">
+      <div class="step-num">4</div>
+      <div class="step-title">Параметры сервера</div>
+    </div>
+    <div class="step-body">
+      <p>Рекомендуем максимум бесплатного лимита — менять что-то нужно, только если знаете зачем.</p>
+      <label>Имя сервера
+        <input type="text" id="vm-name" value="free-arm-vm" maxlength="64">
+      </label>
+      <label>Ядра (OCPU): <span id="ocpus-label">4</span> &nbsp;/&nbsp; Память: <span id="mem-label">24</span> ГБ
+        <input type="range" id="vm-ocpus" min="1" max="4" value="4" style="width:100%">
+      </label>
+      <p class="hint">Память считается автоматически: 6 ГБ на каждое ядро.</p>
+      <button id="btn-step4">🎯 Начать охоту за сервером</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 5 -->
+  <div class="step" id="step5">
+    <div class="step-head">
+      <div class="step-num">5</div>
+      <div class="step-title">Охота за свободными мощностями</div>
+    </div>
+    <div class="step-body">
+      <p>Бесплатные ARM-серверы разбирают быстро, поэтому бот раз в минуту пытается создать сервер, перебирая все зоны региона. Это может занять <b>от минут до нескольких дней</b> — это нормально.</p>
+      <p class="hint">Страницу можно закрыть — охота продолжится на сервере. Возвращайтесь по своей ссылке проверить статус.</p>
+      <div class="hunt-panel">
+        <div class="hunt-stats">
+          <div class="stat"><b id="hunt-attempts">0</b><span>попыток</span></div>
+          <div class="stat"><b id="hunt-elapsed">–</b><span>в работе</span></div>
+          <div class="stat"><b id="hunt-state"><span class="spinner"></span></b><span>статус</span></div>
+        </div>
+        <div class="hunt-log" id="hunt-log">Ожидание...</div>
+      </div>
+      <div class="error" id="hunt-error"></div>
+      <button id="btn-hunt-stop" class="danger">Остановить</button>
+      <button id="btn-hunt-restart" style="display:none">Возобновить охоту</button>
+    </div>
+  </div>
+
+  <!-- ШАГ 6 -->
+  <div class="step" id="step6">
+    <div class="step-head">
+      <div class="step-num">6</div>
+      <div class="step-title">Готово — ваш сервер работает!</div>
+    </div>
+    <div class="step-body">
+      <div class="success-box">
+        <h3>🎉 Сервер создан и запущен</h3>
+        <div class="kv"><span>Публичный IP:</span> <b id="vm-ip">...</b></div>
+        <div class="kv"><span>Пользователь:</span> <b>ubuntu</b></div>
+        <div class="kv"><span>Система:</span> <b id="vm-image">Ubuntu</b></div>
+      </div>
+      <p><b>1.</b> Скачайте ключ подключения (сохраните надёжно — второй раз ключ не выдаётся!):</p>
+      <button id="btn-download-key">⬇️ Скачать SSH-ключ</button>
+      <p><b>2.</b> Подключитесь к серверу (macOS / Linux / Windows 10+):</p>
+      <div class="codebox">
+        <button class="copy-btn" data-copy="#ssh-cmd">Копировать</button>
+        <pre id="ssh-cmd">...</pre>
+      </div>
+      <p class="hint">На macOS/Linux сначала выполните <code>chmod 600 oracle_vm_key</code>, иначе ssh откажется использовать ключ.</p>
+      <p><b>3.</b> Когда ключ скачан и подключение проверено — удалите свои данные с этого сервиса:</p>
+      <button id="btn-wipe" class="danger">🗑️ Удалить мои данные с сервиса</button>
+      <p class="hint">Будут стёрты: API-ключ доступа к вашему аккаунту Oracle и SSH-ключ. На ваш новый сервер это не влияет.</p>
+    </div>
+  </div>
+
+  <footer>
+    Сервис для друзей · ничего не публикуется и не индексируется<br>
+    Разработка: Lexx · <a href="mailto:deuslevolt013@gmail.com">deuslevolt013@gmail.com</a> · <a href="https://github.com/Lexx143/oracle-vm-creator" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+</div>
+<script src="/static/app.js"></script>
+</body>
+</html>
