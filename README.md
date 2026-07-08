@@ -1,41 +1,45 @@
 # Oracle VM Creator
 
-Веб-мастер, который за ручку проводит человека через получение бесплатной ARM VM
-(Always Free, до 4 OCPU / 24 GB) в Oracle Cloud: регистрация → API-ключ → автонастройка
-сети → охота за свободными мощностями → скачивание SSH-ключа.
+[Русский](README.ru.md) · **English**
 
-Поддерживает **несколько параллельных пользователей**: токены перечисляются через
-запятую в `ACCESS_TOKENS` (`.env`), у каждого токена изолированная сессия
-(`data/sessions/<hash>/` — свои ключи, свой стейт, своя охота).
+A web wizard that walks a non-technical person through getting a free ARM VM
+(Always Free, up to 4 OCPU / 24 GB) in Oracle Cloud: sign-up → API key → automatic
+network setup → hunting for free capacity → downloading the SSH key.
 
-## Как это работает
+Supports **multiple users in parallel**: access tokens are listed comma-separated
+in `ACCESS_TOKENS` (`.env`); each token gets an isolated session
+(`data/sessions/<hash>/` — its own keys, state, and capacity hunt).
 
-1. Пользователь открывает персональную ссылку `https://<ваш-домен>/?t=<токен>`.
-2. Шаг 1 — инструкция по регистрации в Oracle Cloud (с рекомендациями по выбору региона).
-3. Шаг 2 — сервис генерирует RSA-ключ; пользователь вставляет публичную часть в
-   консоль Oracle (User settings → Tokens and keys → Add API key) и возвращает
-   сниппет `[DEFAULT]...` обратно. Сервис валидирует доступ живым вызовом API.
-4. Шаг 3 — автонастройка: VCN + Internet Gateway + маршрут + публичный subnet
-   (или переиспользование существующих), свежий образ Ubuntu ARM, ed25519 SSH-ключ.
-5. Шаги 4–5 — фоновый цикл `launch_instance` с перебором availability domains
-   (логика ошибок: Out of capacity → 60 c, 429 → 120 c, LimitExceeded → стоп).
-   Циклы переживают перезапуск контейнера.
-6. Шаг 6 — публичный IP, скачивание приватного SSH-ключа, кнопка полного удаления
-   данных (API-ключ, SSH-ключ, стейт).
+## How it works
 
-## Деплой
+1. The user opens a personal link `https://<your-domain>/?t=<token>`.
+2. Step 1 — instructions for signing up for Oracle Cloud (with home region
+   recommendations, since Always Free capacity varies a lot by region).
+3. Step 2 — the service generates an RSA key pair; the user pastes the public part
+   into the Oracle console (User settings → Tokens and keys → Add API key) and pastes
+   the resulting `[DEFAULT]...` config snippet back. The service validates access
+   with a live API call.
+4. Step 3 — automatic setup: VCN + Internet Gateway + route + public subnet
+   (or reuse of existing ones), the latest Ubuntu ARM image, an ed25519 SSH key.
+5. Steps 4–5 — a background `launch_instance` loop cycling through availability
+   domains (error handling: Out of capacity → retry in 60 s, 429 → 120 s,
+   LimitExceeded → stop with an explanation). Hunts survive container restarts.
+6. Step 6 — public IP, private SSH key download, and a button to wipe all user
+   data (API key, SSH key, state).
+
+## Deployment
 
 ```bash
-# на сервере
+# on your server
 git clone https://github.com/Lexx143/oracle-vm-creator.git
 cd oracle-vm-creator
-echo "ACCESS_TOKENS=$(openssl rand -hex 24)" > .env   # по токену на пользователя, через запятую
+echo "ACCESS_TOKENS=$(openssl rand -hex 24)" > .env   # one token per user, comma-separated
 docker compose up -d --build
 ```
 
-Контейнер слушает `172.17.0.1:3002` — docker-мост, удобно, если reverse proxy тоже
-в docker (поправьте на `127.0.0.1:3002` в `docker-compose.yml`, если proxy на хосте).
-Поставьте перед ним любой reverse proxy с HTTPS, например Caddy:
+The container listens on `172.17.0.1:3002` — the docker bridge, convenient when the
+reverse proxy also runs in docker (change to `127.0.0.1:3002` in `docker-compose.yml`
+if your proxy runs on the host). Put any HTTPS reverse proxy in front, e.g. Caddy:
 
 ```
 vm.example.com {
@@ -43,9 +47,9 @@ vm.example.com {
 }
 ```
 
-Ссылка пользователю: `https://vm.example.com/?t=<токен из .env>`.
+User link: `https://vm.example.com/?t=<token from .env>`.
 
-## Локальный запуск для разработки
+## Local development
 
 ```bash
 pip install -r requirements.txt
@@ -53,17 +57,22 @@ ACCESS_TOKENS=devtoken uvicorn app.main:app --reload
 # http://127.0.0.1:8000/?t=devtoken
 ```
 
-## Добавить нового пользователя
+## Adding a new user
 
-Дописать новый токен в `ACCESS_TOKENS` (`.env`) через запятую и
-`docker compose up -d` — активные охоты других пользователей возобновятся
-автоматически. Удаление данных — кнопка «Удалить мои данные» в UI, либо
-`rm -rf data/sessions/<hash>` (hash = sha256(токен)[:16]).
+Append a new token to `ACCESS_TOKENS` (`.env`) and run `docker compose up -d` —
+other users' active hunts resume automatically. To delete a user's data, use the
+"Delete my data" button in the UI, or `rm -rf data/sessions/<hash>`
+(hash = sha256(token)[:16]).
 
-## Безопасность
+## Security
 
-- Приватный API-ключ OCI пользователя и SSH-ключ лежат только в `data/` (в `.gitignore`).
-- Доступ по секретному токену (query-параметр → httponly-cookie), HTTPS — на reverse proxy.
-- После скачивания ключа пользователю предлагается стереть все данные.
-- Помните: API-ключ даёт полный доступ к Oracle-аккаунту пользователя — сервис
-  предполагает доверие между тем, кто хостит, и тем, кто им пользуется.
+- The user's private OCI API key and SSH key live only in `data/` (gitignored).
+- Access via a secret token (query parameter → httponly cookie); HTTPS is the
+  reverse proxy's job.
+- After downloading the SSH key, the user is prompted to wipe all their data.
+- Keep in mind: the API key grants full access to the user's Oracle account — the
+  service assumes trust between whoever hosts it and whoever uses it.
+
+## Note
+
+The wizard UI is currently in Russian.
