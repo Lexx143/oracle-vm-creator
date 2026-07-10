@@ -8,6 +8,7 @@ import copy
 import hashlib
 import json
 import os
+import secrets
 import threading
 from pathlib import Path
 
@@ -114,6 +115,44 @@ def existing_keys():
         return []
     return [d.name for d in SESSIONS_DIR.iterdir()
             if d.is_dir() and (d / "session.json").exists()]
+
+
+# --------------------------------------------------------------- Выданные токены
+# Токены, созданные через вход по общему логину/паролю. Храним только хэши.
+
+TOKENS_FILE = DATA_DIR / "tokens.json"
+_tokens_lock = threading.Lock()
+
+
+def _full_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _read_issued():
+    if TOKENS_FILE.exists():
+        try:
+            return json.loads(TOKENS_FILE.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass
+    return []
+
+
+def issue_token() -> str:
+    """Выдать новый персональный токен (после входа по общему паролю)."""
+    token = secrets.token_hex(24)
+    with _tokens_lock:
+        issued = _read_issued()
+        issued.append(_full_hash(token))
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        tmp = TOKENS_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(issued))
+        tmp.replace(TOKENS_FILE)
+    return token
+
+
+def token_issued(token: str) -> bool:
+    with _tokens_lock:
+        return _full_hash(token) in _read_issued()
 
 
 def migrate_legacy(token: str):

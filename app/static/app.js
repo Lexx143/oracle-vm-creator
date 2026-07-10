@@ -5,6 +5,11 @@ const $ = (sel) => document.querySelector(sel);
 let session = null;
 let pollTimer = null;
 
+// персональная ссылка (токен вшит в страницу сервером)
+if (document.body.dataset.token) {
+  $("#my-link").textContent = location.origin + "/?t=" + document.body.dataset.token;
+}
+
 async function api(path, opts = {}) {
   const res = await fetch(path, {
     method: opts.method || "GET",

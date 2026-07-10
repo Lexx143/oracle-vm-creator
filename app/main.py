@@ -8,10 +8,11 @@
 import logging
 import os
 import secrets
+import time
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
@@ -42,6 +43,10 @@ def _load_tokens():
 
 TOKENS = _load_tokens()
 
+# общий логин/пароль компании — по нему выдаются персональные токены
+APP_LOGIN = os.environ.get("APP_LOGIN", "")
+APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
+
 
 def _find_token(supplied: str):
     match = None
@@ -49,6 +54,8 @@ def _find_token(supplied: str):
         # проверяем все токены, чтобы время ответа не зависело от места совпадения
         if secrets.compare_digest(supplied, t):
             match = t
+    if match is None and supplied and state.token_issued(supplied):
+        match = supplied
     return match
 
 
@@ -74,11 +81,34 @@ def resume_background_work():
 def index(request: Request):
     token = _find_token(_supplied_token(request))
     if token is None:
+        if APP_LOGIN and APP_PASSWORD:
+            return templates.TemplateResponse(request, "login.html")
         return HTMLResponse(
             "<h1 style='font-family:sans-serif'>403 — нужна персональная ссылка</h1>",
             status_code=403,
         )
-    response = templates.TemplateResponse(request, "index.html")
+    response = templates.TemplateResponse(request, "index.html", {"token": token})
+    response.set_cookie(COOKIE_NAME, token, httponly=True,
+                        max_age=60 * 60 * 24 * 90, samesite="lax")
+    return response
+
+
+class LoginBody(BaseModel):
+    login: str = Field(min_length=1, max_length=100)
+    password: str = Field(min_length=1, max_length=200)
+
+
+@app.post("/api/login")
+def login(body: LoginBody):
+    ok = (bool(APP_LOGIN) and bool(APP_PASSWORD)
+          and secrets.compare_digest(body.login.strip(), APP_LOGIN)
+          and secrets.compare_digest(body.password, APP_PASSWORD))
+    if not ok:
+        time.sleep(1)  # притормозить перебор
+        raise HTTPException(status_code=401, detail="Неверный логин или пароль.")
+    token = state.issue_token()
+    state.for_token(token)  # регистрируем сессию
+    response = JSONResponse({"ok": True, "token": token})
     response.set_cookie(COOKIE_NAME, token, httponly=True,
                         max_age=60 * 60 * 24 * 90, samesite="lax")
     return response

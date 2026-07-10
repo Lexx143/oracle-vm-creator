@@ -11,3 +11,6 @@ services:
       # список токенов через запятую; первый — «владелец» данных старой раскладки
       - ACCESS_TOKENS=${ACCESS_TOKENS:-}
       - ACCESS_TOKEN=${ACCESS_TOKEN:-}
+      # общий логин/пароль: вход выдаёт персональный токен-ссылку
+      - APP_LOGIN=${APP_LOGIN:-}
+      - APP_PASSWORD=${APP_PASSWORD:-}

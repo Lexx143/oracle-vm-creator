@@ -7,8 +7,13 @@
 <title>Бесплатный сервер в Oracle Cloud</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body data-token="{{ token }}">
 <div class="wrap">
+  <div class="codebox" style="margin-bottom:20px;">
+    <button class="copy-btn" data-copy="#my-link">Копировать</button>
+    <div class="hint" style="margin-bottom:6px;">🔗 Ваша персональная ссылка — сохраните, чтобы вернуться к своей сессии с любого устройства:</div>
+    <pre id="my-link" style="color:#8fc7ff;">...</pre>
+  </div>
   <header>
     <h1>🖥️ Бесплатный ARM-сервер в Oracle Cloud</h1>
     <p>Пошаговый мастер: 2 ядра и 12 ГБ памяти — навсегда бесплатно</p>

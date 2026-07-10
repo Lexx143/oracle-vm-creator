@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Вход — Бесплатный сервер в Oracle Cloud</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap" style="max-width:420px; padding-top:12vh;">
+  <header>
+    <h1>🖥️ Бесплатный ARM-сервер</h1>
+    <p>Вход для сотрудников компании</p>
+  </header>
+  <div class="step open">
+    <div class="step-body" style="padding:22px;">
+      <label>Логин
+        <input type="text" id="login" autocomplete="username">
+      </label>
+      <label>Пароль
+        <input type="password" id="password" autocomplete="current-password"
+               style="width:100%; background:#0b0f18; border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:15px; padding:12px; margin-top:8px;">
+      </label>
+      <div class="error" id="login-error"></div>
+      <button id="btn-login" style="width:100%">Войти</button>
+      <p class="hint" style="margin-top:14px">После входа вы получите персональную ссылку — по ней можно вернуться к своей сессии с любого устройства.</p>
+    </div>
+  </div>
+</div>
+<script>
+"use strict";
+const err = document.querySelector("#login-error");
+async function doLogin() {
+  err.classList.remove("show");
+  const btn = document.querySelector("#btn-login");
+  btn.disabled = true;
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        login: document.querySelector("#login").value,
+        password: document.querySelector("#password").value,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "Ошибка " + res.status);
+    location.href = "/?t=" + data.token;
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.add("show");
+    btn.disabled = false;
+  }
+}
+document.querySelector("#btn-login").addEventListener("click", doLogin);
+document.addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+</script>
+</body>
+</html>

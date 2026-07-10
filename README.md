@@ -60,12 +60,19 @@ ACCESS_TOKENS=devtoken uvicorn app.main:app --reload
 # http://127.0.0.1:8000/?t=devtoken
 ```
 
-## Adding a new user
+## Adding users
 
-Append a new token to `ACCESS_TOKENS` (`.env`) and run `docker compose up -d` —
-other users' active hunts resume automatically. To delete a user's data, use the
-"Delete my data" button in the UI, or `rm -rf data/sessions/<hash>`
-(hash = sha256(token)[:16]).
+Two ways, usable together:
+
+- **Shared login** (for a team): set `APP_LOGIN` and `APP_PASSWORD` in `.env`.
+  Anyone opening the site without a token gets a login page; after signing in they
+  are issued a personal token link automatically (token hashes are stored in
+  `data/tokens.json`).
+- **Manual tokens**: append a token to `ACCESS_TOKENS` (`.env`) and
+  `docker compose up -d` — other users' active hunts resume automatically.
+
+To delete a user's data, use the "Delete my data" button in the UI, or
+`rm -rf data/sessions/<hash>` (hash = sha256(token)[:16]).
 
 ## Security
 
