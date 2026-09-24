@@ -1,5 +1,7 @@
 # Oracle VM Creator
 
+[![CI](https://github.com/Lexx143/oracle-vm-creator/actions/workflows/ci.yml/badge.svg)](https://github.com/Lexx143/oracle-vm-creator/actions/workflows/ci.yml)
+
 **Русский** · [English](README.md)
 
 Веб-мастер, который за ручку проводит человека через получение бесплатной ARM VM

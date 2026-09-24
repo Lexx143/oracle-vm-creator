@@ -309,8 +309,9 @@ def run_setup_async(sess):
             log.exception("setup failed [%s]", sess.key)
             sess.mutate(lambda s: s["setup"].update(status="error", error=msg))
         except Exception as e:
+            err = str(e)
             log.exception("setup failed [%s]", sess.key)
-            sess.mutate(lambda s: s["setup"].update(status="error", error=str(e)))
+            sess.mutate(lambda s: s["setup"].update(status="error", error=err))
 
     with _threads_lock:
         thread = threading.Thread(target=worker, daemon=True)
